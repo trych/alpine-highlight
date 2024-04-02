@@ -35,7 +35,7 @@ this file.
 
 If you were creating a plugin called "Alpine JS CSV" you could do the following:
 
-- "PLUGIN" to "alpinejs-csv"
+- "alpinejs-highlight" to "alpinejs-csv"
 - "FILE" to "csv"
 - "DESCRIPTION" to "Transform data into a CSV with Alpine JS 📈"
 
@@ -50,34 +50,33 @@ to you.
 
 **--- DELETE END ---**
 
-# PLUGIN
+# alpinejs-highlight
 
-DESCRIPTION
+Flexible highlighting of text matches with Alpine.js 🔦
 
 ## Install
 
 ### With a CDN
 
 ```html
-<script defer src="https://unpkg.com/PLUGIN@latest/dist/FILE.min.js"></script>
+<script src="https://unpkg.com/alpinejs-highlight@latest/dist/highlight.min.js" defer></script>
 
-<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 ```
 
 ### With a Package Manager
 
 ```shell
-yarn add -D PLUGIN
+yarn add -D alpinejs-highlight
 
-npm install -D PLUGIN
+npm install -D alpinejs-highlight
 ```
 
 ```js
 import Alpine from 'alpinejs'
-import FILE from 'PLUGIN'
+import highlight from 'alpinejs-highlight'
 
-Alpine.plugin(FILE)
-
+Alpine.plugin(highlight)
 Alpine.start()
 ```
 
@@ -87,7 +86,7 @@ Examples of how the plugin works.
 
 ## Stats
 
-![](https://img.shields.io/bundlephobia/min/PLUGIN)
-![](https://img.shields.io/npm/v/PLUGIN)
-![](https://img.shields.io/npm/dt/PLUGIN)
-![](https://img.shields.io/github/license/markmead/PLUGIN)
+![](https://img.shields.io/bundlephobia/min/alpinejs-highlight)
+![](https://img.shields.io/npm/v/alpinejs-highlight)
+![](https://img.shields.io/npm/dt/alpinejs-highlight)
+![](https://img.shields.io/github/license/markmead/alpinejs-highlight)
