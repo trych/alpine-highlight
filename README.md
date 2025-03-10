@@ -174,7 +174,7 @@ If the first modifier after the directive name is not one of the functional modi
   This important message requires caution when handling
 </p>
 ```
-Possible result: "This <mark style="background: skyblue">important</mark> message requires <mark style="background: orangered">caution</mark> when handling"
+Possible result: "This <mark style="background-color: skyblue">important</mark> message requires <mark style="background-color: orangered">caution</mark> when handling"
 
 These named sets create CSS classes or highlight registrations with the name pattern `x-highlight-{name}`. For example, the modifier `.warning` creates a highlight set called `x-highlight-warning`.
 
