@@ -4,17 +4,348 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Alpine JS Plugin</title>
+    <title>Alpine Highlight Plugin Test</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- Load your plugin (must be before Alpine.js) -->
     <script defer src="./dist/highlight.min.js"></script>
 
-    <script
-      defer
-      src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
-    ></script>
+    <!-- Load Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+      ::highlight(x-highlight) {
+        background-color: hotpink;
+        text-decoration: underline;
+      }
+
+      ::highlight(x-highlight-2) {
+        background-color: orange;
+        text-decoration: underline;
+      }
+
+      ::highlight(x-highlight-3) {
+        background-color: lightgreen;
+        text-decoration: underline;
+      }
+
+      ::highlight(x-highlight-4) {
+        background-color: rgba(255, 0, 0, 0.5);
+        text-decoration: underline;
+      }
+
+      ::highlight(x-highlight-5) {
+        background-color: rgba(30, 144, 255, 0.5); /* dodger blue */
+        text-decoration: underline;
+      }
+
+      ::highlight(x-highlight-6) {
+        background-color: rgba(255, 165, 0, 0.5); /* orange */
+        text-decoration: underline;
+      }
+    </style>
   </head>
 
-  <body> </body>
+  <body class="p-8">
+    <div x-data="{
+      target: 'Banana',
+      query: '',
+      query2: '',
+      query3: [],
+      counter: 0,
+      counterRegex: 0,
+      query4: '',
+      indexRange: null,
+      multiRanges: null
+    }">
+      <h1 class="text-2xl font-bold mb-6">Alpine.js Highlight Plugin Demo</h1>
+
+      <div class="mb-6">
+        <h2 class="text-xl font-semibold mb-2">Demo Text</h2>
+        <p
+          id="main-text"
+          x-text="`Hello ${target}! foo baz blub bar bla römø Äræ bólèrü rüßðþblij`"
+          x-highlight.all.min.2.nocase.fold="query"
+          x-highlight.2="query2"
+          x-highlight.3="query3"
+          x-highlight.4="query4"
+          class="p-4 border rounded mb-4 text-lg"
+        ></p>
+
+        <p
+          id="secondary-text"
+          x-highlight="query"
+          class="p-4 border rounded text-lg"
+        >foo baz blub bar bla</p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-6 mb-6">
+        <div>
+          <h2 class="text-xl font-semibold mb-2">Controls</h2>
+          <button
+            @click="target = Math.random()"
+            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 mb-4"
+          >Change Text</button>
+
+          <div class="mb-4">
+            <label class="block mb-1 font-medium">Highlight 1 (all, min 2, nocase, fold)</label>
+            <input
+              type="text"
+              x-model="query"
+              class="w-full p-2 border rounded"
+              placeholder="Type to highlight..."
+              x-init="$el.focus()"
+            >
+          </div>
+
+          <div class="mb-4">
+            <label class="block mb-1 font-medium">Highlight 2</label>
+            <input
+              type="text"
+              x-model="query2"
+              class="w-full p-2 border rounded"
+              placeholder="Type to highlight..."
+            >
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-xl font-semibold mb-2">Advanced Controls</h2>
+          <button
+            @click="query3 = !(counter++ % 2) ? ['foo', 'bar'] : ['blub', 'bla']"
+            class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 mb-4 w-full"
+          >
+            Toggle Highlight 3 Array
+          </button>
+          <div class="text-sm text-gray-600 mb-4">
+            Toggles between ['foo', 'bar'] and ['blub', 'bla']
+          </div>
+
+          <button
+            @click="query4 = !(counterRegex++ % 2) ? /ba/g : ''"
+            class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 w-full"
+          >
+            Toggle Highlight 4 Regex
+          </button>
+          <div class="text-sm text-gray-600">
+            Toggles between /ba/g and empty string
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 p-4 border rounded bg-gray-50">
+        <h2 class="text-xl font-semibold mb-2">Index-Based Highlighting</h2>
+
+        <div class="mb-4">
+          <p
+            id="index-text"
+            x-highlight.5="indexRange"
+            x-highlight.6="multiRanges"
+            class="p-4 border rounded mb-4 text-lg bg-white"
+          >This is a sample text for testing index-based highlighting functionality. Try the buttons below.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <button
+              @click="indexRange = [4, 10]"
+              class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 mb-2 w-full"
+            >
+              Highlight [4, 10]
+            </button>
+            <div class="text-sm text-gray-600 mb-2">
+              Highlights characters from index 4 to 10
+            </div>
+
+            <div class="mt-2">
+              <div>
+                Found <span x-text="$matches('#index-text', '5').count" class="font-bold"></span>
+                matches in Set 5
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <button
+              @click="multiRanges = [[13, 18], [28, 38]]"
+              class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 mb-2 w-full"
+            >
+              Highlight [[13, 18], [28, 38]]
+            </button>
+            <div class="text-sm text-gray-600 mb-2">
+              Highlights multiple ranges: 13-18 and 28-38
+            </div>
+
+            <div class="mt-2">
+              <div>
+                Found <span x-text="$matches('#index-text', '6').count" class="font-bold"></span>
+                matches in Set 6
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <button
+            @click="indexRange = null; multiRanges = null"
+            class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 w-full"
+          >
+            Clear Index Highlights
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-6 p-4 bg-gray-100 rounded">
+        <h2 class="text-xl font-semibold mb-2">Match Information</h2>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <h3 class="font-medium mb-1">All Elements Default Set:</h3>
+            <div>
+              <div>Found <span x-text="$matches().count" class="font-bold"></span> total matches</div>
+              <div class="text-xs mt-1">
+                <button
+                  @click="let result = $matches(); console.log('Default matches:', result); alert('Found ' + result.count + ' matches. See console for details.')"
+                  class="px-2 py-1 bg-gray-200 rounded text-xs"
+                >
+                  Log Details
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="font-medium mb-1">Highlight Set 2:</h3>
+            <div>
+              <div>Found <span x-text="$matches('2').count" class="font-bold"></span> matches</div>
+              <div class="text-xs mt-1">
+                <button
+                  @click="let result = $matches('2'); console.log('Set 2 matches:', result); alert('Found ' + result.count + ' matches. See console for details.')"
+                  class="px-2 py-1 bg-gray-200 rounded text-xs"
+                >
+                  Log Details
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Element-specific match information -->
+        <div class="mt-6 border-t pt-4">
+          <h3 class="font-medium mb-2">Element-Specific Matches:</h3>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <h4 class="font-medium mb-1 text-blue-600">Main Text Matches Only:</h4>
+              <div>
+                <div>
+                  Found <span x-text="$matches('#main-text').count" class="font-bold"></span> total matches
+                </div>
+                <div class="text-xs mt-1">
+                  <button
+                    @click="let result = $matches('#main-text'); console.log('Main text matches:', result); alert('Found ' + result.count + ' matches in main text')"
+                    class="px-2 py-1 bg-blue-200 rounded text-xs"
+                  >
+                    Log Details
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 class="font-medium mb-1 text-green-600">Secondary Text Matches Only:</h4>
+              <div>
+                <div>
+                  Found <span x-text="$matches('#secondary-text').count" class="font-bold"></span> total matches
+                </div>
+                <div class="text-xs mt-1">
+                  <button
+                    @click="let result = $matches('#secondary-text'); console.log('Secondary text matches:', result); alert('Found ' + result.count + ' matches in secondary text')"
+                    class="px-2 py-1 bg-green-200 rounded text-xs"
+                  >
+                    Log Details
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Combined specific element and highlight set -->
+          <div class="mt-4">
+            <h4 class="font-medium mb-1 text-purple-600">Specific Element + Specific Set:</h4>
+            <div class="flex space-x-4">
+              <div>
+                <div>Main Text, Set 2: <span x-text="$matches('#main-text', '2').count" class="font-bold"></span> matches</div>
+                <div class="text-xs mt-1">
+                  <button
+                    @click="let result = $matches('#main-text', '2'); console.log('Main text, set 2 matches:', result); alert('Found ' + result.count + ' Set 2 matches in main text')"
+                    class="px-2 py-1 bg-purple-200 rounded text-xs"
+                  >
+                    Log
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <div>Main Text, Default Set: <span x-text="$matches('#main-text', 'default').count" class="font-bold"></span> matches</div>
+                <div class="text-xs mt-1">
+                  <button
+                    @click="let result = $matches('#main-text', 'default'); console.log('Main text, default set matches:', result); alert('Found ' + result.count + ' Default Set matches in main text')"
+                    class="px-2 py-1 bg-purple-200 rounded text-xs"
+                  >
+                    Log
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <h3 class="font-medium mb-2">Debug Controls:</h3>
+          <div class="flex space-x-2">
+            <button
+              @click="let registry = Alpine.store('__xHighlightRegistry'); console.log('Registry:', registry); console.log('Map size:', registry.elementMatchData.size); alert('See console for registry details')"
+              class="px-3 py-1 bg-blue-500 text-white text-sm rounded"
+            >
+              Log Registry
+            </button>
+
+            <button
+              @click="let registry = Alpine.store('__xHighlightRegistry'); let elements = Array.from(registry.elementMatchData.keys()); console.log('Elements with match data:', elements); alert('Found ' + elements.length + ' elements with match data')"
+              class="px-3 py-1 bg-green-500 text-white text-sm rounded"
+            >
+              Log Elements
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <h3 class="font-medium mb-2">Current Highlighted Terms:</h3>
+          <div class="space-y-2">
+            <div class="flex items-center">
+              <div class="w-4 h-4 bg-pink-400 mr-2"></div>
+              <div class="text-sm" x-text="query || '(none)'"></div>
+            </div>
+
+            <div class="flex items-center">
+              <div class="w-4 h-4 bg-orange-400 mr-2"></div>
+              <div class="text-sm" x-text="query2 || '(none)'"></div>
+            </div>
+
+            <div class="flex items-center">
+              <div class="w-4 h-4 bg-green-300 mr-2"></div>
+              <div class="text-sm" x-text="query3.length > 0 ? JSON.stringify(query3) : '(none)'"></div>
+            </div>
+
+            <div class="flex items-center">
+              <div class="w-4 h-4 bg-red-300 mr-2"></div>
+              <div class="text-sm" x-text="query4 ? (typeof query4 === 'object' ? '/ba/g' : query4) : '(none)'"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>

@@ -22,3 +22,12 @@ yarn-error.log*
 
 # testing
 # index.html
+
+# build
+/dist
+
+# repomix
+repomix-output.txt
+
+# WIP example files
+example*.html
