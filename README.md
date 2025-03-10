@@ -107,7 +107,7 @@ The `x-highlight` directive is used to highlight text within elements based on a
   ```html
   <p x-highlight="/mark\w*/g">The marked markings were remarkable</p>
   ```
-  Result: "The <mark>marked</mark> <mark>markings</mark> were <mark>remarkable</mark>"
+  Result: "The <mark>marked</mark> <mark>markings</mark> were re<mark>markable</mark>"
 
 - **Arrays of Patterns**: Highlight multiple terms at once
   ```html
@@ -135,11 +135,11 @@ The `x-highlight` directive supports several modifiers to customize highlighting
   ```html
   <p x-highlight.all="'e'">Emphasize every essential element</p>
   ```
-  Result: "Emphasiz<mark>e</mark>mark> <mark>e</mark>v<mark>e</mark>ry <mark>e</mark>ss<mark>e</mark>ntial <mark>e</mark>l<mark>e</mark>m<mark>e</mark>nt"
+  Result: "Emphasiz<mark>e</mark> <mark>e</mark>v<mark>e</mark>ry <mark>e</mark>ss<mark>e</mark>ntial <mark>e</mark>l<mark>e</mark>m<mark>e</mark>nt"
 
 - **`.nocase`**: Case-insensitive matching
   ```html
-  <p x-highlight.nocase="'MARK'">Marking important text with a marker</p>
+  <p x-highlight.nocase.all="'MARK'">Marking important text with a marker</p>
   ```
   Result: "<mark>Mark</mark>ing important text with a <mark>mark</mark>er"
 
@@ -171,9 +171,10 @@ If the first modifier after the directive name is not one of the functional modi
 
 ```html
 <p x-highlight.cool="'important'" x-highlight.warning="'caution'">
-  This <mark>important</mark> message requires <mark>caution</mark> when handling
+  This important message requires caution when handling
 </p>
 ```
+Possible result: "This <mark style="background: skyblue">important</mark> message requires <mark style="background: orangered">caution</mark> when handling"
 
 These named sets create CSS classes or highlight registrations with the name pattern `x-highlight-{name}`. For example, the modifier `.warning` creates a highlight set called `x-highlight-warning`.
 
@@ -205,6 +206,9 @@ mark.x-highlight-warning {
 
 This approach allows you to create multiple distinct highlight styles on the same page for different types of content or importance levels.
 
+I'll update the `$matches` Magic Helper section in the README to reflect the new style. Here's the revised documentation:
+
+
 ## `$matches` Magic Helper
 
 The `$matches` magic helper allows you to access information about the highlighted matches. It provides count and position data for highlighted content within the current Alpine data context.
@@ -221,13 +225,21 @@ The `$matches` magic helper allows you to access information about the highlight
 </div>
 ```
 
+### Options Configuration
+
+The `$matches` magic accepts an options object with the following properties:
+
+- **`selector`**: Target specific element(s) by CSS selector (e.g., `'#content'`)
+- **`set`**: Retrieve matches from a specific highlight set (e.g., `'yellow'`)
+- **`bounds`**: Include position information for each match when set to `true`
+
 ### Targeting Specific Elements
 
 ```html
 <p id="content" x-highlight.all="term">A noted notation about notes</p>
 
 <div>
-  Matches in content: <span x-text="$matches('#content').count"></span>
+  Matches in content: <span x-text="$matches({ selector: '#content' }).count"></span>
 </div>
 ```
 
@@ -239,7 +251,7 @@ The `$matches` magic helper allows you to access information about the highlight
 </p>
 
 <div>
-  Yellow matches: <span x-text="$matches('yellow').count"></span>
+  Yellow matches: <span x-text="$matches({ set: 'yellow' }).count"></span>
 </div>
 ```
 
@@ -252,7 +264,7 @@ For advanced usage, `$matches` provides detailed information about each match:
   <p x-highlight.all="term">Text with highlights</p>
 
   <button @click="
-    let result = $matches(null, null, {bounds: true});
+    let result = $matches({ bounds: true });
     console.log(result.matches[0].text); // 'highlight'
     console.log(result.matches[0].index); // position in text
     console.log(result.matches[0].bounds); // DOM position
@@ -260,6 +272,23 @@ For advanced usage, `$matches` provides detailed information about each match:
     Show Match Details
   </button>
 </div>
+```
+
+### Combining Options
+
+You can combine multiple options in a single call:
+
+```html
+<button @click="
+  let specificMatches = $matches({
+    selector: '#paragraph-id',
+    set: 'primary',
+    bounds: true
+  });
+  console.log(specificMatches);
+">
+  Analyze Specific Matches
+</button>
 ```
 
 ## Browser Support

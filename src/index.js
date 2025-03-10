@@ -10,15 +10,18 @@ export default function (Alpine) {
     useNativeApi: highlightApiSupported
   });
 
-  // Add $matches magic - no el parameter needed here
   Alpine.magic('matches', () => {
-    return (selector = null, setName = null, options = {}) => {
-      let includeBounds = options.bounds === true;
+    return (options = {}) => {
       let registry = Alpine.store('__xHighlightRegistry');
 
       if (!registry.elementMatchData) {
         return { count: 0, matches: [] };
       }
+
+      // Extract options with defaults
+      let selector = options.selector || null;
+      let setName = options.set || null;
+      let includeBounds = options.bounds === true;
 
       // Get all elements with match data and determine target elements
       let targetElements = Array.from(registry.elementMatchData.keys());
@@ -35,10 +38,6 @@ export default function (Alpine) {
 
       // Determine which highlight set to use
       let highlightSet = null;
-      if (selector && typeof selector === 'string' && !selector.startsWith('#')) {
-        highlightSet = getHighlightSetName(selector);
-      }
-
       if (setName) {
         highlightSet = getHighlightSetName(setName);
       }
@@ -69,10 +68,10 @@ export default function (Alpine) {
       });
 
       if (includeBounds) {
+        // Process match bounds as in the original code
         targetElements.forEach(el => {
           let elementData = registry.elementMatchData.get(el);
 
-          // Process each match to include bounds
           if (highlightSet) {
             if (elementData[highlightSet]) {
               addBoundsToMatches(elementData[highlightSet].matches, el);
