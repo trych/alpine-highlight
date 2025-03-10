@@ -4,11 +4,11 @@ Flexible text highlighting for Alpine.js 🔦
 
 ## Features
 
-- 🎯 **Powerful Highlighting**: Highlight any text with multiple pattern types (strings, regex, index ranges) and smart content observation
-- 🔄 **Multiple Highlight Sets**: Create separate highlight groups with custom styling
-- 🎚️ **Advanced Options**: Case-insensitive matching, find all occurrences, accent folding and minimum length modifiers
+- 💅 **Powerful Highlighting**: Highlight any text with multiple pattern types (strings, regex, index ranges) and smart content observation
+- 🎨 **Multiple Highlight Sets**: Create separate highlight groups with custom styling
+- ⚙️ **Advanced Options**: Case-insensitive matching, find all occurrences, accent folding and minimum length modifiers
 - 🔍 **Match Information**: Access count and position data through the `$matches` magic helper
-- 🔄 **Auto Adaptation**: Uses modern CSS Highlight API with fallback for older browsers
+- 🔮 **Auto Adaptation**: Uses modern CSS Highlight API with fallback for older browsers
 
 ## Installation
 
@@ -174,7 +174,7 @@ If the first modifier after the directive name is not one of the functional modi
   This important message requires caution when handling
 </p>
 ```
-Possible result: "This <mark style="background-color: skyblue">important</mark> message requires <mark style="background-color: orangered">caution</mark> when handling"
+Possible result: "This <span style="background-color: skyblue">important</span> message requires <span style="background-color: orangered">caution</span> when handling"
 
 These named sets create CSS classes or highlight registrations with the name pattern `x-highlight-{name}`. For example, the modifier `.warning` creates a highlight set called `x-highlight-warning`.
 
