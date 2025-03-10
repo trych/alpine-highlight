@@ -1,36 +1,29 @@
 export default function (Alpine) {
+  // check if Highlight API is supported
+  let highlightApiSupported = isHighlightApiSupported();
+
   // initialize Alpine store with a unique namespace
   Alpine.store('__xHighlightRegistry', {
     instances: {},
     counts: {},
-    elementMatchData: new Map()
+    elementMatchData: new Map(),
+    useNativeApi: highlightApiSupported
   });
 
   // Add $matches magic - no el parameter needed here
   Alpine.magic('matches', () => {
     return (selector = null, setName = null, options = {}) => {
-      console.log('$matches called with', selector, setName, options);
-
       let includeBounds = options.bounds === true;
-
       let registry = Alpine.store('__xHighlightRegistry');
 
       if (!registry.elementMatchData) {
-        console.error('elementMatchData not found in registry');
         return { count: 0, matches: [] };
       }
 
-      // Get all elements with match data
-      let elements = Array.from(registry.elementMatchData.keys());
-
-      // If no elements with match data, return empty result
-      if (elements.length === 0) {
-        console.log('No elements with match data found');
-        return { count: 0, matches: [] };
-      }
+      // Get all elements with match data and determine target elements
+      let targetElements = Array.from(registry.elementMatchData.keys());
 
       // Check if selector is an element selector
-      let targetElements = elements;
       if (selector && typeof selector === 'string' && selector.startsWith('#')) {
         let targetEl = document.querySelector(selector);
         if (targetEl && registry.elementMatchData.has(targetEl)) {
@@ -50,9 +43,6 @@ export default function (Alpine) {
         highlightSet = getHighlightSetName(setName);
       }
 
-      console.log('Using highlight set:', highlightSet);
-      console.log('Target elements:', targetElements.length);
-
       // Collect all match data
       let result = {
         count: 0,
@@ -66,14 +56,12 @@ export default function (Alpine) {
         if (highlightSet) {
           // If specific highlight set requested
           if (elementData[highlightSet]) {
-            console.log(`Found ${elementData[highlightSet].count} matches for set ${highlightSet} in element:`, el);
             result.count += elementData[highlightSet].count;
             result.matches = [...result.matches, ...elementData[highlightSet].matches];
           }
         } else {
           // Get data from all highlight sets
           Object.keys(elementData).forEach(setKey => {
-            console.log(`Found ${elementData[setKey].count} matches for set ${setKey} in element:`, el);
             result.count += elementData[setKey].count;
             result.matches = [...result.matches, ...elementData[setKey].matches];
           });
@@ -97,14 +85,11 @@ export default function (Alpine) {
         });
       }
 
-      console.log('Final result:', result);
       return result;
     };
   });
 
   Alpine.directive('highlight', (el, { modifiers, expression }, { evaluate, evaluateLater, effect, cleanup }) => {
-    console.log('register highlight directive on:', el);
-
     // known functional modifiers
     let functionalModifiers = ['all', 'nocase', 'min', 'fold'];
 
@@ -140,21 +125,26 @@ export default function (Alpine) {
 
     // get store
     let store = Alpine.store('__xHighlightRegistry');
+    let useNativeApi = store.useNativeApi;
 
-    // get or create highlight instance and increment count
-    if (!store.instances[cssHighlightSet]) {
-      store.instances[cssHighlightSet] = new Highlight();
-      CSS.highlights.set(cssHighlightSet, store.instances[cssHighlightSet]);
-      store.counts[cssHighlightSet] = 0;
+    // For native API: get or create highlight instance and increment count
+    if (useNativeApi) {
+      if (!store.instances[cssHighlightSet]) {
+        store.instances[cssHighlightSet] = new Highlight();
+        CSS.highlights.set(cssHighlightSet, store.instances[cssHighlightSet]);
+        store.counts[cssHighlightSet] = 0;
+      }
+      store.counts[cssHighlightSet]++;
     }
 
-    // increment reference count
-    store.counts[cssHighlightSet]++;
-
-    let highlight = store.instances[cssHighlightSet];
-
-    // store ranges for this element
+    // native API: store ranges for this element
     let elementRanges = [];
+
+    // fallback API: store created mark elements
+    let markElements = [];
+
+    // preserve original content for fallback
+    let originalContent = el.innerHTML;
 
     let getQuery = evaluateLater(expression);
 
@@ -171,6 +161,10 @@ export default function (Alpine) {
     let observer = new MutationObserver(mutations => {
       // check if textContent has changed
       if (el.textContent !== lastContent) {
+        if (!useNativeApi) {
+          // for fallback, store the new content as original before highlighting
+          originalContent = el.innerHTML;
+        }
         highlightText(evaluate(expression));
         lastContent = el.textContent; // update last known content
       }
@@ -183,19 +177,27 @@ export default function (Alpine) {
     cleanup(() => {
       observer.disconnect();
 
-      // remove this element's ranges
-      elementRanges.forEach(range => {
-        highlight.delete(range);
-      });
+      if (useNativeApi) {
+        // remove this element's ranges
+        elementRanges.forEach(range => {
+          let highlight = store.instances[cssHighlightSet];
+          if (highlight) {
+            highlight.delete(range);
+          }
+        });
 
-      // decrement reference count
-      store.counts[cssHighlightSet]--;
+        // decrement reference count
+        store.counts[cssHighlightSet]--;
 
-      // if no more elements are using this highlight, remove it from CSS.highlights
-      if (store.counts[cssHighlightSet] <= 0) {
-        CSS.highlights.delete(cssHighlightSet);
-        delete store.instances[cssHighlightSet];
-        delete store.counts[cssHighlightSet];
+        // if no more elements are using this highlight, remove it from CSS.highlights
+        if (store.counts[cssHighlightSet] <= 0) {
+          CSS.highlights.delete(cssHighlightSet);
+          delete store.instances[cssHighlightSet];
+          delete store.counts[cssHighlightSet];
+        }
+      } else {
+        // remove mark elements for fallback
+        clearMarkElements();
       }
 
       // clean up match data for this element and highlight set
@@ -211,25 +213,31 @@ export default function (Alpine) {
     });
 
     function highlightText(expression) {
-      console.log('Highlighting with expression:', expression);
-
-      // clear previous highlights
-      elementRanges.forEach(range => highlight.delete(range));
-      elementRanges.length = 0;
+      if (useNativeApi) {
+        // clear previous highlights
+        elementRanges.forEach(range => {
+          let highlight = store.instances[cssHighlightSet];
+          if (highlight) {
+            highlight.delete(range);
+          }
+        });
+        elementRanges.length = 0;
+      } else {
+        // clear previous mark elements for fallback
+        clearMarkElements();
+        // restore original content
+        el.innerHTML = originalContent;
+      }
 
       let text = el.textContent;
-      let textNode = el.firstChild;
-      if (!textNode) return;
 
       // prepare match data for this element and this highlight set
       if (!store.elementMatchData.has(el)) {
         store.elementMatchData.set(el, {});
       }
 
-      let elementData = store.elementMatchData.get(el);
-
       // prepare match data for this specific highlight set
-      elementData[cssHighlightSet] = {
+      store.elementMatchData.get(el)[cssHighlightSet] = {
         count: 0,
         matches: [],
         text: text,
@@ -237,24 +245,22 @@ export default function (Alpine) {
         set: cssHighlightSet
       };
 
-      let matchData = elementData[cssHighlightSet];
+      let matchData = store.elementMatchData.get(el)[cssHighlightSet];
 
       // Check if we have a single range [start, end]
       if (Array.isArray(expression) && expression.length === 2 &&
           typeof expression[0] === 'number' && typeof expression[1] === 'number') {
-        console.log('Processing single index range:', expression);
-        processIndexRange(expression, text, textNode, matchData);
+        processIndexRange(expression, text, matchData);
         return;
       }
       // Check if we have multiple ranges [[start1, end1], [start2, end2], ...]
       else if (Array.isArray(expression) && expression.length > 0 &&
                Array.isArray(expression[0])) {
-        console.log('Processing multiple index ranges:', expression);
         let hasValidRanges = false;
         expression.forEach(range => {
           if (Array.isArray(range) && range.length === 2 &&
               typeof range[0] === 'number' && typeof range[1] === 'number') {
-            processIndexRange(range, text, textNode, matchData);
+            processIndexRange(range, text, matchData);
             hasValidRanges = true;
           }
         });
@@ -269,34 +275,153 @@ export default function (Alpine) {
       }
 
       expression.forEach(exp => {
-        console.log('Processing expression part:', exp);
         let matches = findMatches(exp, text);
-        console.log('Found matches:', matches);
 
         // update match data
         matchData.count += matches.length;
 
-        matches.forEach(match => {
-          try {
-            let range = document.createRange();
-            range.setStart(textNode, match[0]);
-            range.setEnd(textNode, match[1]);
-            highlight.add(range);
-            elementRanges.push(range);
-
-            // store match data
-            let matchedText = text.substring(match[0], match[1]);
-            matchData.matches.push({
-              text: matchedText,
-              index: match[0],
-              length: match[1] - match[0]
-            });
-
-          } catch (e) {
-            console.error('Range error:', e);
-          }
-        });
+        if (useNativeApi) {
+          // Native Highlight API approach
+          highlightNative(matches, text, matchData);
+        } else {
+          // Fallback approach using mark elements
+          highlightFallback(matches, text, matchData);
+        }
       });
+    }
+
+    // helper function for native highlighting
+    function highlightNative(matches, text, matchData) {
+      let textNode = el.firstChild;
+      if (!textNode) return;
+
+      matches.forEach(match => {
+        try {
+          let range = document.createRange();
+          range.setStart(textNode, match[0]);
+          range.setEnd(textNode, match[1]);
+          store.instances[cssHighlightSet].add(range);
+          elementRanges.push(range);
+
+          // store match data
+          let matchedText = text.substring(match[0], match[1]);
+          matchData.matches.push({
+            text: matchedText,
+            index: match[0],
+            length: match[1] - match[0],
+            set: cssHighlightSet  // store the set name with each match
+          });
+
+        } catch (e) {
+          // silent error handling
+        }
+      });
+    }
+
+    // helper function for fallback highlighting with mark elements
+    function highlightFallback(matches, text, matchData) {
+      // Sort matches by starting index in reverse order
+      // This allows us to work from end to start to avoid index shifting
+      matches.sort((a, b) => b[0] - a[0]);
+
+      let content = el.innerHTML;
+      // Create encoder/decoder once for all matches
+      let encoder = new TextEncoder();
+      let contentBuffer = encoder.encode(content);
+
+      // Store operations to apply all at once
+      let operations = [];
+
+      matches.forEach((match, matchIndex) => {
+        try {
+          // Get the matched text
+          let matchedText = text.substring(match[0], match[1]);
+
+          // Create unique ID for this match
+          let matchId = `${cssHighlightSet}-${matchData.matches.length}`;
+
+          // Store match data with set name and unique ID
+          matchData.matches.push({
+            text: matchedText,
+            index: match[0],
+            length: match[1] - match[0],
+            set: cssHighlightSet,
+            id: matchId
+          });
+
+          // Create HTML for the mark element with data-match-id attribute
+          let markedText = `<mark class="${cssHighlightSet}" data-match-id="${matchId}">${matchedText}</mark>`;
+
+          // Adjust index from text to content (accounting for HTML tags)
+          let currentTextPos = 0;
+          let contentPos = 0;
+          let startContentPos = -1;
+
+          // Find the position in content that corresponds to the match position in text
+          for (let i = 0; i < contentBuffer.length; i++) {
+            // Check if we're inside a tag
+            if (content[contentPos] === '<') {
+              // Skip to the end of the tag
+              while (contentPos < content.length && content[contentPos] !== '>') {
+                contentPos++;
+              }
+              contentPos++; // Skip the '>'
+              continue;
+            }
+
+            if (currentTextPos === match[0]) {
+              startContentPos = contentPos;
+            }
+
+            if (currentTextPos === match[1]) {
+              // Found the end position - store operation rather than applying immediately
+              operations.push({
+                startPos: startContentPos,
+                endPos: contentPos,
+                replacement: markedText,
+                matchId: matchId,
+                matchedText: matchedText
+              });
+              break;
+            }
+
+            currentTextPos++;
+            contentPos++;
+          }
+        } catch (e) {
+          // silent error handling
+        }
+      });
+
+      // Apply all operations in reverse (already sorted)
+      operations.forEach(op => {
+        content = content.substring(0, op.startPos) +
+                  op.replacement +
+                  content.substring(op.endPos);
+
+        // Create a mark element and add to our list for cleanup
+        let markEl = document.createElement('mark');
+        markEl.className = cssHighlightSet;
+        markEl.dataset.matchId = op.matchId;
+        markEl.textContent = op.matchedText;
+        markElements.push(markEl);
+      });
+
+      // Update the element's content with our highlighted version - just once
+      el.innerHTML = content;
+    }
+
+    // clear mark elements in fallback mode
+    function clearMarkElements() {
+      markElements.forEach(mark => {
+        if (mark.parentNode) {
+          mark.parentNode.replaceChild(
+            document.createTextNode(mark.textContent),
+            mark
+          );
+        }
+      });
+      markElements = [];
     }
 
     // extract match finding to a separate function
@@ -306,6 +431,7 @@ export default function (Alpine) {
       if (typeof exp === 'string') {
         if (exp.length < minLength) return matches;
 
+        // Use original text for matching but apply transformations for comparison
         let searchText = text;
         let searchExp = exp;
 
@@ -334,16 +460,15 @@ export default function (Alpine) {
           }
         }
       } else if (exp instanceof RegExp) {
+        // For regex, modify flags as needed
+        let regexFlags = exp.flags;
+        if (isCaseInsensitive && !regexFlags.includes('i')) regexFlags += 'i';
+        if (highlightAll && !regexFlags.includes('g')) regexFlags += 'g';
+
         // For regex, we need special handling for folding
         if (shouldFold) {
           // create folded version of text
           let foldedText = foldAccents(text);
-
-          // keep original regex flags
-          let regexFlags = exp.flags;
-          if (isCaseInsensitive && !regexFlags.includes('i')) regexFlags += 'i';
-          if (highlightAll && !regexFlags.includes('g')) regexFlags += 'g';
-
           let regex = new RegExp(exp.source, regexFlags);
           let match;
 
@@ -356,10 +481,6 @@ export default function (Alpine) {
           }
         } else {
           // existing regex handling
-          let regexFlags = exp.flags;
-          if (isCaseInsensitive && !regexFlags.includes('i')) regexFlags += 'i';
-          if (highlightAll && !regexFlags.includes('g')) regexFlags += 'g';
-
           let regex = new RegExp(exp.source, regexFlags);
           let match;
 
@@ -377,24 +498,15 @@ export default function (Alpine) {
     }
 
     // helper function to handle index based input
-    function processIndexRange(range, text, textNode, matchData) {
+    function processIndexRange(range, text, matchData) {
       try {
         // validate range
         let startIndex = Math.max(0, range[0]);
         let endIndex = Math.min(text.length, range[1]);
 
         if (startIndex >= endIndex) {
-          console.log('Invalid range (start >= end):', range);
           return;
         }
-
-        console.log('Creating range from', startIndex, 'to', endIndex);
-
-        let r = document.createRange();
-        r.setStart(textNode, startIndex);
-        r.setEnd(textNode, endIndex);
-        highlight.add(r);
-        elementRanges.push(r);
 
         // store match data
         let matchedText = text.substring(startIndex, endIndex);
@@ -405,9 +517,21 @@ export default function (Alpine) {
           length: endIndex - startIndex
         });
 
-        console.log('Added match:', matchedText, 'at', startIndex, 'to', endIndex);
+        if (useNativeApi) {
+          let textNode = el.firstChild;
+          if (!textNode) return;
+
+          let r = document.createRange();
+          r.setStart(textNode, startIndex);
+          r.setEnd(textNode, endIndex);
+          store.instances[cssHighlightSet].add(r);
+          elementRanges.push(r);
+        } else {
+          // Fallback using mark elements for index-based highlighting
+          highlightFallback([[startIndex, endIndex]], text, matchData);
+        }
       } catch (e) {
-        console.error('Range error for indices:', range, e);
+        // silent error handling
       }
     }
 
@@ -417,18 +541,9 @@ export default function (Alpine) {
 
       // replace special characters with their ASCII equivalents
       let specialChars = {
-        'æ': 'a',
-        'Æ': 'A',
-        'œ': 'o',
-        'Œ': 'O',
-        'ø': 'o',
-        'Ø': 'O',
-        'ł': 'l',
-        'Ł': 'L',
-        'đ': 'd',
-        'Đ': 'D',
-        'ð': 'd',
-        'Ð': 'D'
+        'æ': 'a', 'Æ': 'A', 'œ': 'o', 'Œ': 'O',
+        'ø': 'o', 'Ø': 'O', 'ł': 'l', 'Ł': 'L',
+        'đ': 'd', 'Đ': 'D', 'ð': 'd', 'Ð': 'D'
       };
 
       return result.replace(/[æÆœŒøØłŁđĐðÐ]/g, match => specialChars[match] || match);
@@ -437,44 +552,68 @@ export default function (Alpine) {
 
   function getHighlightSetName(modifier) {
     // if no modifier or 'default', use the default highlight set name
-    if (!modifier || modifier === 'default') {
-      return 'x-highlight';
+    if (modifier && typeof modifier !== 'string') {
+      // Safely handle non-string modifiers
+      modifier = String(modifier);
     }
-
-    // for numeric or string modifiers, create the proper set name
-    return `x-highlight-${modifier}`;
+    return !modifier || modifier === 'default' ? 'x-highlight' : `x-highlight-${modifier}`;
   }
 
   function addBoundsToMatches(matches, element) {
     matches.forEach(match => {
       if (!match.bounds) {
         try {
-          // Create a temporary range to get bounds
-          let range = document.createRange();
-          let textNode = element.firstChild;
+          if (Alpine.store('__xHighlightRegistry').useNativeApi) {
+            // Create a temporary range to get bounds
+            let range = document.createRange();
+            let textNode = element.firstChild;
 
-          if (textNode) {
-            range.setStart(textNode, match.index);
-            range.setEnd(textNode, match.index + match.length);
+            if (textNode) {
+              range.setStart(textNode, match.index);
+              range.setEnd(textNode, match.index + match.length);
 
-            // Get the bounding rectangle
-            let rect = range.getBoundingClientRect();
+              // Get the bounding rectangle
+              let rect = range.getBoundingClientRect();
 
-            // Add bounds information to the match
-            match.bounds = {
-              top: rect.top,
-              right: rect.right,
-              bottom: rect.bottom,
-              left: rect.left,
-              width: rect.width,
-              height: rect.height
-            };
+              // Add bounds information to the match
+              match.bounds = {
+                top: rect.top,
+                right: rect.right,
+                bottom: rect.bottom,
+                left: rect.left,
+                width: rect.width,
+                height: rect.height
+              };
+            }
+          } else {
+            // For fallback, find the mark element with the matching data-match-id
+            if (match.id) {
+              let markElement = element.querySelector(`mark[data-match-id="${match.id}"]`);
+
+              if (markElement) {
+                let rect = markElement.getBoundingClientRect();
+                match.bounds = {
+                  top: rect.top,
+                  right: rect.right,
+                  bottom: rect.bottom,
+                  left: rect.left,
+                  width: rect.width,
+                  height: rect.height
+                };
+              }
+            }
           }
         } catch (e) {
-          console.error('Error calculating match bounds:', e);
           match.bounds = null;
         }
       }
     });
+  }
+
+  // Helper function to check if the Highlight API is supported
+  function isHighlightApiSupported() {
+    return typeof CSS !== 'undefined' &&
+           typeof CSS.highlights !== 'undefined' &&
+           typeof Highlight !== 'undefined';
   }
 }
