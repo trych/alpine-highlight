@@ -323,6 +323,30 @@ For the most consistent experience across browsers, consider these best practice
 2. Use separate elements for content that needs different highlight sets
 
 
+## Known Limitations
+
+### Nested HTML Elements
+
+Alpine.js Highlight only processes direct text content of elements with the `x-highlight` directive. When an element contains nested HTML elements, highlighting will only work for text content up to the first child element. For example:
+
+```html
+<p x-highlight="term">This text can be highlighted <span>but this text won't be</span> nor will this text.</p>
+```
+
+This limitation applies to both the modern CSS Highlight API implementation and the fallback approach. For content with nested HTML structure, consider these workarounds:
+
+1. Apply the `x-highlight` directive to the innermost elements that contain just text content
+   ```html
+   <p x-highlight="term">This will be highlighted
+     <span x-highlight="term">and so will this</span>
+     <span x-highlight="term">and this as well</span>
+   </p>
+   ```
+  However, note that this approach still cannot highlight matches that cross node boundaries. For example, if your search term is `highlighted and`, the match would span from the main paragraph into the first span, which cannot be properly highlighted with the current implementation.
+
+2. Simplify your content structure by avoiding nested elements when highlighting is needed
+
+
 ## Contributing
 
 If you encounter any issues or have suggestions, please [open an new issue](https://github.com/trych/alpine-highlight/issues).
