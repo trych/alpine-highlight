@@ -6,14 +6,33 @@
     "Alpine",
     "Alpine JS",
     "Alpine JS Plugin",
-    "Alpine JS Plugins"
+    "Alpine JS Plugins",
+    "highlight",
+    "search",
+    "text-highlighting"
   ],
   "module": "dist/highlight.esm.js",
   "unpkg": "dist/highlight.min.js",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "node scripts/build.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trych/alpine-highlight.git"
+  },
+  "author": "Timo Rychert <mail@trych.dev>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/trych/alpine-highlight/issues"
+  },
+  "homepage": "https://github.com/trych/alpine-highlight#readme",
   "devDependencies": {
     "esbuild": "^0.16.2"
+  },
+  "peerDependencies": {
+    "alpinejs": "^3.0.0"
   }
 }

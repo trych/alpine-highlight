@@ -80,8 +80,8 @@ The Alpine.js Highlight plugin provides two different methods for styling your h
 
 ```css
 ::highlight(x-highlight) {
-  background-color: yellow;
-  color: black;
+  background-color: hotpink;
+  text-decoration: underline;
 }
 ```
 
@@ -89,8 +89,8 @@ The Alpine.js Highlight plugin provides two different methods for styling your h
 
 ```css
 mark.x-highlight {
-  background-color: yellow;
-  color: inherit;
+  background-color: hotpink;
+  text-decoration: underline;
 }
 ```
 
