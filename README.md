@@ -94,7 +94,7 @@ mark.x-highlight {
 }
 ```
 
-## `x-highlight` Directive
+## `x-highlight`
 
 The `x-highlight` directive is used to highlight text within elements based on a given query.
 
@@ -221,22 +221,6 @@ mark.x-highlight-warning {
 This approach allows you to create multiple distinct highlight styles on the same page for different types of content or importance levels.
 
 
-### Browser Compatibility Considerations
-
-The plugin uses the CSS Highlight API when available (supported in Chrome, Edge, and Safari as of March 2025, with Firefox being the notable exception). With this API, multiple highlight sets can be displayed simultaneously on the same content. Each set applies its styling independently, allowing for overlapping highlights with combined visual effects.
-
-However, when using the fallback implementation (for browsers without CSS Highlight API support), there are some limitations:
-
-* **Single Active Set Per Text Node**: In the fallback mode, only one highlight set can be shown at a time for any given text node. When a new highlight set is added to text that already has highlights, the previous highlights will be removed.
-* **Multiple Ranges Support**: Each highlight set can still include multiple ranges within the same text.
-* **Multiple Elements Support**: Different elements can each have their own highlight sets, even with the fallback implementation.
-
-For the most consistent experience across browsers, consider these best practices until the CSS Highlight API is fully adopted across all major browsers:
-
-1. Design your application to work with the fallback's single-set-per-node limitation
-2. Use separate elements for content that needs different highlight sets
-
-
 ## `$matches` Magic Helper
 
 The `$matches` magic helper allows you to access information about the highlighted matches. It provides count and position data for highlighted content within the current Alpine data context.
@@ -321,7 +305,22 @@ You can combine multiple options in a single call:
 
 ## Browser Support
 
-Alpine.js Highlight uses the modern CSS Highlight API when available, with an automatic fallback to a DOM-based approach for older browsers.
+Alpine.js Highlight uses the modern CSS Highlight API when available, with an automatic fallback to a DOM-based approach for browsers with no CSS Highlight API support (notably Firefox as of March 2025).
+
+### Browser Compatibility Considerations
+
+With the modern CSS Highlight API, multiple highlight sets can be displayed simultaneously on the same content. Each set applies its styling independently, allowing for overlapping highlights with combined visual effects.
+
+However, when using the fallback implementation (for browsers without CSS Highlight API support), there are some limitations:
+
+* **Single Active Set Per Text Node**: In the fallback mode, only one highlight set can be shown at a time for any given text node. When a new highlight set is added to text that already has highlights, the previous highlights will be removed.
+* **Multiple Ranges Support**: Each highlight set can still include multiple ranges within the same text.
+* **Multiple Elements Support**: Different elements can each have their own highlight sets, even with the fallback implementation.
+
+For the most consistent experience across browsers, consider these best practices until the CSS Highlight API is fully adopted across all major browsers:
+
+1. Design your application to work with the fallback's single-set-per-node limitation
+2. Use separate elements for content that needs different highlight sets
 
 
 ## Contributing
