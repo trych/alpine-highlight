@@ -342,7 +342,7 @@ This limitation applies to both the modern CSS Highlight API implementation and 
      <span x-highlight="term">and this as well</span>
    </p>
    ```
-  However, note that this approach still cannot highlight matches that cross node boundaries. For example, if your search term is `highlighted and`, the match would span from the main paragraph into the first span, which cannot be properly highlighted with the current implementation.
+    However, note that this approach still cannot highlight matches that cross node boundaries. For example, if your search term is "`highlighted and`", the match would span from the main paragraph into the first span, which cannot be properly highlighted with the current implementation.
 
 2. Simplify your content structure by avoiding nested elements when highlighting is needed
 
