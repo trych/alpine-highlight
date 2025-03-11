@@ -26,23 +26,23 @@ export default function (Alpine) {
       // Get all elements with match data and determine target elements
       let targetElements = Array.from(registry.elementMatchData.keys());
 
-      // Check if selector is an element selector
-      if (selector && typeof selector === 'string' && selector.startsWith('#')) {
-        let targetEl = document.querySelector(selector);
-        if (targetEl && registry.elementMatchData.has(targetEl)) {
-          targetElements = [targetEl];
-        } else {
-          targetElements = [];
-        }
+      if (selector && typeof selector === 'string') {
+        // querySelectorAll to find all matching elements
+        let matchingElements = Array.from(document.querySelectorAll(selector));
+
+        // Filter to only include elements that have match data
+        targetElements = matchingElements.filter(el =>
+          registry.elementMatchData.has(el)
+        );
       }
 
-      // Determine which highlight set to use
+      // determine which highlight set to use
       let highlightSet = null;
       if (setName) {
         highlightSet = getHighlightSetName(setName);
       }
 
-      // Collect all match data
+      // collect all match data
       let result = {
         count: 0,
         matches: []
@@ -266,6 +266,10 @@ export default function (Alpine) {
         if (hasValidRanges) return;
       }
 
+      if (typeof expression === 'number') {
+        expression = String(expression);
+      }
+
       // If we get here, handle as string/regex (original logic)
       if (typeof expression === 'string' || expression instanceof RegExp) {
         expression = [expression];
@@ -426,6 +430,10 @@ export default function (Alpine) {
     // extract match finding to a separate function
     function findMatches(exp, text) {
       let matches = [];
+
+      if (typeof exp === 'number') {
+        exp = String(exp);
+      }
 
       if (typeof exp === 'string') {
         if (exp.length < minLength) return matches;
