@@ -4,7 +4,7 @@ Flexible text highlighting for Alpine.js 🔦
 
 ## Features
 
-- 💅 **Powerful Highlighting**: Highlight any text with multiple pattern types (strings, regex, index ranges) and smart content observation
+- 💅 **Powerful Highlighting**: Highlight text matches with multiple pattern types (strings, regex, index ranges)
 - 🎨 **Multiple Highlight Sets**: Create separate highlight groups with custom styling
 - ⚙️ **Advanced Options**: Case-insensitive matching, find all occurrences, accent folding and minimum length modifiers
 - 🔍 **Match Information**: Access count and position data through the `$matches` magic helper
@@ -47,7 +47,6 @@ The plugin works in two modes:
 2. Falling back to mark elements for older browsers
 
 Here's a simple example:
-
 ```html
 <div x-data="{ term: 'mark' }">
   <p x-highlight="term">
@@ -55,8 +54,23 @@ Here's a simple example:
   </p>
 </div>
 ```
-
 Result: "A highlighter pen helps <mark>mark</mark> important passages of text."
+
+The search term can be dynamically updated, and the highlights will automatically refresh to match the new term.
+
+The plugin also monitors changes to the text content itself. In the following example, whenever the number `29` appears in the newly generated random numbers, it will be automatically highlighted without requiring any additional code:
+
+```html
+<div x-data="{
+  myLuckyNumber: 29,
+  randomNumbers: '10 29 85 29 47 63 29 91'
+}">
+  <p x-text="randomNumbers" x-highlight.all="myLuckyNumber"></p>
+  <button @click="randomNumbers = Array.from({length: 10}, () => Math.floor(Math.random() * 100)).join(' ')">
+    Generate New Numbers
+  </button>
+</div>
+```
 
 ## Styling Highlights
 
