@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2025-04-11 - Legacy mode configuration
+
+### Added
+- New configurable legacy mode option
+- Browser-specific legacy mode targeting
+- Runtime configuration through Alpine store
+
 ## [1.1.0] - 2025-03-11 - Bug fix release
 
 ### Fixed

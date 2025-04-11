@@ -307,6 +307,37 @@ You can combine multiple options in a single call:
 
 Alpine.js Highlight uses the modern CSS Highlight API when available, with an automatic fallback to a DOM-based approach for browsers with no CSS Highlight API support (notably Firefox as of March 2025).
 
+### Legacy Mode Configuration
+
+By default, Alpine.js Highlight uses the modern CSS Highlight API when available, with an automatic fallback to a DOM-based approach for browsers without support (notably Firefox as of April 2025). You can customize this behavior with the `legacy` configuration option:
+
+```javascript
+// set configuration during Alpine initialization
+document.addEventListener('alpine:init', () => {
+  Alpine.store('highlightConfig').legacy = 'auto';
+});
+```
+
+The legacy option accepts these values:
+
+- `'auto'` (default): Automatically detect if the CSS Highlight API is supported
+- `true`: Always use legacy mode (DOM-based highlighting) for all browsers
+- `false`: Always use CSS Highlight API for all browsers. Unsupported browsers will display no highlights.
+- Array of browser names: Use legacy mode only for specified browsers
+
+The array option lets you target specific browsers with known CSS Highlight API inconsistencies. In particular, I found Safari occasionally exhibits highlighting glitches that legacy mode can resolve.
+
+Example to force Safari and Firefox to use legacy mode:
+
+```js
+document.addEventListener('alpine:init', () => {
+  Alpine.store('highlightConfig').legacy = ['safari', 'firefox'];
+});
+```
+
+Currently, `safari`, `firefox` and `chrome` are supported array values.
+
+
 ### Browser Compatibility Considerations
 
 With the modern CSS Highlight API, multiple highlight sets can be displayed simultaneously on the same content. Each set applies its styling independently, allowing for overlapping highlights with combined visual effects.

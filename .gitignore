@@ -21,13 +21,13 @@ yarn-error.log*
 .env.production.local
 
 # testing
-# index.html
+test*
 
 # build
 /dist
 
 # repomix
-repomix-output.txt
+repomix-output.*
 
 # WIP example files
 example*.html

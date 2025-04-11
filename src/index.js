@@ -1,4 +1,10 @@
 export default function (Alpine) {
+
+  // Add global configuration
+  Alpine.store('highlightConfig', {
+    legacy: 'auto'    // can be true, false, 'auto', or array of browser names
+  });
+
   // check if Highlight API is supported
   let highlightApiSupported = isHighlightApiSupported();
 
@@ -7,7 +13,42 @@ export default function (Alpine) {
     instances: {},
     counts: {},
     elementMatchData: new Map(),
-    useNativeApi: highlightApiSupported
+    // Use computed property to check config
+    get useNativeApi() {
+      let config = Alpine.store('highlightConfig');
+
+      // Process legacy setting
+      if (config.legacy === true) {
+        return false; // Always use legacy mode
+      } else if (config.legacy === false) {
+        return true;  // Always use native API (if available)
+      } else if (Array.isArray(config.legacy)) {
+        // check if current browser is in the exception list
+        let browsers = config.legacy.map(b => String(b).trim().toLowerCase());
+
+        let isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        if (isSafari && browsers.includes('safari')) {
+          return false;
+        }
+
+        let isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+        if (isFirefox && browsers.includes('firefox')) {
+          return false;
+        }
+
+        let isChrome = /chrome|chromium|crios/i.test(navigator.userAgent) &&
+                      !/edg|edge/i.test(navigator.userAgent);
+        if (isChrome && browsers.includes('chrome')) {
+          return false;
+        }
+
+        // for all other cases, use Highlight API
+        return true;
+      }
+
+      // default fallback - auto-detect
+      return isHighlightApiSupported();
+    }
   });
 
   Alpine.magic('matches', () => {
@@ -125,6 +166,8 @@ export default function (Alpine) {
     // get store
     let store = Alpine.store('__xHighlightRegistry');
     let useNativeApi = store.useNativeApi;
+
+    console.warn('useNativeApi: ' + useNativeApi);
 
     // For native API: get or create highlight instance and increment count
     if (useNativeApi) {
