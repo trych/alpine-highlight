@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.1] - 2025-04-11
+
+### Fixed
+- Remove console warnings
+
 ## [1.2.0] - 2025-04-11 - Legacy mode configuration
 
 ### Added
@@ -31,5 +36,7 @@ All notable changes to this project will be documented in this file.
 - `$matches` magic helper to access highlight information
 - Automatic DOM content observation for dynamic updates
 
+[1.1.0]: https://github.com/trych/alpine-highlight/releases/tag/v1.2.1
+[1.1.0]: https://github.com/trych/alpine-highlight/releases/tag/v1.2.0
 [1.1.0]: https://github.com/trych/alpine-highlight/releases/tag/v1.1.0
 [1.0.0]: https://github.com/trych/alpine-highlight/releases/tag/v1.0.0
