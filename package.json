@@ -1,6 +1,6 @@
 {
   "name": "alpinejs-highlight",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Flexible highlighting of text matches with Alpine.js 🔦",
   "keywords": [
     "Alpine",
@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/trych/alpine-highlight#readme",
   "devDependencies": {
-    "esbuild": "^0.16.2"
+    "esbuild": "^0.25.0"
   },
   "peerDependencies": {
     "alpinejs": "^3.0.0"

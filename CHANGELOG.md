@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.2] - 2025-04-11
+
+### Fixed
+- Updated esbuild to 0.25.0+ to address security vulnerability (CORS settings in development server)
+- Republished package with properly built distribution files that were missing in 1.2.1
+
 ## [1.2.1] - 2025-04-11
 
 ### Fixed
