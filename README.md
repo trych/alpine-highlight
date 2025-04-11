@@ -305,8 +305,6 @@ You can combine multiple options in a single call:
 
 ## Browser Support
 
-Alpine.js Highlight uses the modern CSS Highlight API when available, with an automatic fallback to a DOM-based approach for browsers with no CSS Highlight API support (notably Firefox as of March 2025).
-
 ### Legacy Mode Configuration
 
 By default, Alpine.js Highlight uses the modern CSS Highlight API when available, with an automatic fallback to a DOM-based approach for browsers without support (notably Firefox as of April 2025). You can customize this behavior with the `legacy` configuration option:
