@@ -13,7 +13,6 @@ export default function (Alpine) {
     instances: {},
     counts: {},
     elementMatchData: new Map(),
-    // Use computed property to check config
     get useNativeApi() {
       let config = Alpine.store('highlightConfig');
 
@@ -166,8 +165,6 @@ export default function (Alpine) {
     // get store
     let store = Alpine.store('__xHighlightRegistry');
     let useNativeApi = store.useNativeApi;
-
-    console.warn('useNativeApi: ' + useNativeApi);
 
     // For native API: get or create highlight instance and increment count
     if (useNativeApi) {
